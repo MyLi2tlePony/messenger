@@ -1,0 +1,21 @@
+[logger]
+level = "debug"
+
+[database]
+Prefix = "postgresql"
+DatabaseName = "postgres"
+#Host = "test_postgres"
+#Port = ""
+Host = "localhost"
+Port = "5436"
+UserName = "postgres"
+Password = "1234512345"
+
+
+[migration]
+downPath = "migrations/down.sql"
+upPath = "migrations/up.sql"
+
+[server]
+Host = "localhost"
+Port = "3456"

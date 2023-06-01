@@ -1,0 +1,21 @@
+[server]
+#Host = "0.0.0.0"
+Host = "app"
+Port = "8080"
+
+[logger]
+level = "info"
+
+[database]
+Prefix = "postgresql"
+DatabaseName = "postgres"
+#Host = "balance_postgresdb"
+#Port = ""
+Host = "localhost"
+Port = "5436"
+UserName = "postgres"
+Password = "1234512345"
+
+[migration]
+downPath = "migrations/down.sql"
+upPath = "migrations/up.sql"
