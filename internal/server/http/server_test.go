@@ -93,6 +93,9 @@ func Test(t *testing.T) {
 
 		err = db.DeleteUser(userId)
 		require.Nil(t, err)
+
+		err = db.DeleteTableUserChats(userId)
+		require.Nil(t, err)
 	}
 }
 

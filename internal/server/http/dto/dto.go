@@ -1,26 +1,26 @@
 package dto
 
 type User struct {
-	PublicId string
+	PublicId string `json:"public_id,omitempty"`
 
-	Login      string
-	FirstName  string
-	SecondName string
-	Created    string
+	Login      string `json:"login,omitempty"`
+	FirstName  string `json:"first_name,omitempty"`
+	SecondName string `json:"second_name,omitempty"`
+	Created    string `json:"created,omitempty"`
 }
 
 type Message struct {
-	Id     int
-	UserId int
+	Id     int `json:"id,omitempty"`
+	UserId int `json:"user_id,omitempty"`
 
-	Type    int
-	Changed bool
-	Read    bool
-	Text    string
-	Created string
+	Type    int    `json:"type,omitempty"`
+	Changed bool   `json:"changed,omitempty"`
+	Read    bool   `json:"read,omitempty"`
+	Text    string `json:"text,omitempty"`
+	Created string `json:"created,omitempty"`
 
-	Messages []Message
-	Comments []Message
+	Messages []Message `json:"messages,omitempty"`
+	Comments []Message `json:"comments,omitempty"`
 }
 
 type Chat struct {
@@ -35,7 +35,7 @@ type Chat struct {
 }
 
 type Tocken struct {
-	Text string
+	Text string `json:"text,omitempty"`
 }
 
 type CreateUserRequest struct {
@@ -49,8 +49,8 @@ type CreateTockenRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Tocken Tocken
-	User   User
+	Tocken Tocken `json:"tocken"`
+	User   User   `json:"user"`
 }
 
 type SendMessageRequest struct {

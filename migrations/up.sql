@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS tockens (
 
 CREATE TABLE IF NOT EXISTS chats (
     id SERIAL PRIMARY KEY UNIQUE NOT NULL,
-    Type    INTEGER NOT NULL,
+    description TEXT NOT NULL,
     --Created TIMESTAMP NOT NULL,
-    Name    TEXT NOT NULL
+    name TEXT NOT NULL,
+    open BOOLEAN NOT NULL
 );

@@ -3,9 +3,11 @@ package entity
 import "time"
 
 type Chat struct {
-	Id   int
-	Type int
+	Id int
 
-	Name    string
+	Description string
+	Name        string
+
+	Open    bool
 	Created time.Time
 }

@@ -195,7 +195,46 @@ func (s *storage) CreateTableUserChats(userId int) error {
 }
 
 func (s *storage) DeleteTableUserChats(userId int) error {
-	query := `DROP TABLE IF EXISTS chats` + strconv.Itoa(userId)
+	query := `DROP TABLE IF EXISTS chats_user_` + strconv.Itoa(userId)
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) CreateChat(chat entity.Chat) (int, error) {
+	query := `
+		INSERT INTO
+    		chats (name, description, open)
+		VALUES
+			($1, $2, $3)
+		RETURNING
+			id`
+
+	var id int
+	err := s.db.QueryRow(s.ctx, query, chat.Description, chat.Name, chat.Open).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (s *storage) CreateTableParticipantsChat(chatId int) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS participants_chat_` + strconv.Itoa(chatId) + `(
+    		id SERIAL PRIMARY KEY UNIQUE NOT NULL,
+			user_id INTEGER NOT NULL REFERENCES users (Id) ON DELETE CASCADE,
+			
+			write BOOLEAN NOT NULL,
+			post BOOLEAN NOT NULL,
+			comment BOOLEAN NOT NULL,
+			delete BOOLEAN NOT NULL,
+			add BOOLEAN NOT NULL
+		)`
 
 	_, err := s.db.Exec(s.ctx, query)
 	if err != nil {
