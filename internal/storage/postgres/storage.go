@@ -254,6 +254,17 @@ func (s *storage) CreateTableParticipantsChat(chatId int) error {
 	return nil
 }
 
+func (s *storage) DeleteTableParticipantsChat(chatId int) error {
+	query := `DROP TABLE IF EXISTS participants_chat_` + strconv.Itoa(chatId)
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 //// CreateCourier создает запись в базе данных и возвращает id новой записи
 //func (s *storage) CreateCourier(ctx context.Context, courier entity.Courier) (id int, err error) {
 //	query := `
