@@ -5,9 +5,10 @@ const (
 	urlOrders   = "/orders"
 	urlCouriers = "/couriers"
 
-	UrlTocken = "/tocken"
-	UrlUser   = "/user"
-	UrlUserId = "/user/:id"
+	UrlTocken  = "/tocken"
+	UrlGetUser = "/get/user"
+	UrlUser    = "/user"
+	UrlUserId  = "/user/:id"
 
 	urlChat   = "/chat"
 	urlChatId = "/chat/:id"

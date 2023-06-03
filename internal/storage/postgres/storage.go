@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"github.com/MyLi2tlePony/messenger/internal/storage/entity"
+	"strconv"
 
 	"github.com/jackc/pgx/v4"
 )
@@ -172,6 +173,32 @@ func (s *storage) DeleteTocken(id int) error {
 	query := "DELETE FROM tockens WHERE id = $1"
 
 	if _, err := s.db.Exec(s.ctx, query, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) CreateTableUserChats(userId int) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS chats_user_` + strconv.Itoa(userId) + `(
+    		id SERIAL PRIMARY KEY UNIQUE NOT NULL,
+			chat_id INTEGER NOT NULL REFERENCES chats (Id) ON DELETE CASCADE
+		)`
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) DeleteTableUserChats(userId int) error {
+	query := `DROP TABLE IF EXISTS chats` + strconv.Itoa(userId)
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
 		return err
 	}
 

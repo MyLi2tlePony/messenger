@@ -15,14 +15,17 @@ type Storage interface {
 	SelectUserIdByTocken(tockenText string) (int, error)
 	CreateTocken(userId int, tockenText string) (entity.Tocken, error)
 
+	CreateTableUserChats(userId int) error
+
+	//CreateChat(tocken dto.Tocken, chatName string, chatType int, adminsIds, userIds []int) error
+
 	//CreateMessage(chatId int, message dto.Message) error
 	//GetMessage(tocken dto.Tocken, messageId, chatId int) (dto.Message, error)
 	//GetPrevMessages(tocken dto.Tocken, chatId, offset, count int) ([]dto.Message, error)
 	//UpdateMessage(tocken dto.Tocken, chatId int, message dto.Message) error
 	//SharedMessage(tocken dto.Tocken, srcChatId, dstChatId int, messages []dto.Message) error
 	//CreateComment(tocken dto.Tocken, messageId int, message dto.Message) error
-	//
-	//CreateChat(tocken dto.Tocken, chatName string, chatType int, adminsIds, userIds []int) error
+
 	//SelectChatById(id int) (dto.Chat, error)
 	//GetPrevChats(tocken dto.Tocken, offset, count int) ([]dto.Chat, error)
 	//UpdateChat(tocken dto.Tocken, chat dto.Chat) error
@@ -46,8 +49,10 @@ func (a *app) CreateUser(request dto.CreateUserRequest) error {
 		return err
 	}
 
-	//TODO сгенерировать publicId
-	_ = id
+	err = a.storage.CreateTableUserChats(id)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -21,7 +21,7 @@ import (
 
 var configPath = path.Join("..", "..", "..", "configs", "test", "config.toml")
 
-func TestCourier(t *testing.T) {
+func Test(t *testing.T) {
 	dbConfig, err := databaseConfig.New(configPath)
 	require.Nil(t, err)
 

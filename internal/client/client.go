@@ -137,8 +137,8 @@ func (c *client) SelectUserByTocken(dtoTocken dto.Tocken) (dto.User, error) {
 		return dto.User{}, err
 	}
 
-	url := c.domain + urls.UrlUser
-	request, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer(content))
+	url := c.domain + urls.UrlGetUser
+	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(content))
 	if err != nil {
 		return dto.User{}, err
 	}

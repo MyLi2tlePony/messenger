@@ -39,6 +39,9 @@ func TestUser(t *testing.T) {
 
 		tockens[i], err = db.CreateTocken(users[i].Id, uuid.New().String())
 		require.Nil(t, err)
+
+		err = db.CreateTableUserChats(users[i].Id)
+		require.Nil(t, err)
 	}
 
 	for i, u := range users {
@@ -63,6 +66,7 @@ func TestUser(t *testing.T) {
 
 	for _, user := range users {
 		require.Nil(t, db.DeleteUser(user.Id))
+		require.Nil(t, db.DeleteTableUserChats(user.Id))
 	}
 }
 
