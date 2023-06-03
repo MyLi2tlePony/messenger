@@ -4,6 +4,7 @@ import (
 	"github.com/MyLi2tlePony/messenger/internal/server/http/dto"
 	"github.com/MyLi2tlePony/messenger/internal/storage/entity"
 	"github.com/google/uuid"
+	"strconv"
 )
 
 type Storage interface {
@@ -50,6 +51,18 @@ func (a *app) CreateUser(request dto.CreateUserRequest) error {
 	}
 
 	err = a.storage.CreateTableUserChats(id)
+	if err != nil {
+		return err
+	}
+
+	err = a.storage.UpdateUser(entity.User{
+		Id:         id,
+		Login:      request.Login,
+		Password:   request.Password,
+		PublicId:   strconv.Itoa(id),
+		FirstName:  strconv.Itoa(id),
+		SecondName: strconv.Itoa(id),
+	})
 	if err != nil {
 		return err
 	}

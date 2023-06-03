@@ -70,7 +70,9 @@ func Test(t *testing.T) {
 			Login:    usersRequests[i].Login,
 			Password: usersRequests[i].Password,
 		})
+		require.Nil(t, err)
 
+		user, err := httpClient.SelectUserByTocken(tockens[i])
 		require.Nil(t, err)
 
 		err = httpClient.UpdateUser(dto.UpdateUserRequest{
@@ -80,7 +82,7 @@ func Test(t *testing.T) {
 
 		require.Nil(t, err)
 
-		user, err := httpClient.SelectUserByTocken(tockens[i])
+		user, err = httpClient.SelectUserByTocken(tockens[i])
 		require.Nil(t, err)
 		require.Equal(t, user, users[i])
 

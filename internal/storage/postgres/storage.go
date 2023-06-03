@@ -223,6 +223,16 @@ func (s *storage) CreateChat(chat entity.Chat) (int, error) {
 	return id, nil
 }
 
+func (s *storage) DeleteChat(id int) error {
+	query := "DELETE FROM tockens WHERE id = $1"
+
+	if _, err := s.db.Exec(s.ctx, query, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *storage) CreateTableParticipantsChat(chatId int) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS participants_chat_` + strconv.Itoa(chatId) + `(
