@@ -3,16 +3,13 @@ package entity
 import "time"
 
 type Message struct {
-	Id            int
-	CreatedUserId int
-	CreatedChatId int
-	SendUserId    int
+	Id     int
+	UserId int
 
-	Personal bool
-	Changed  bool
-	Read     bool
-	Text     string
-	Created  time.Time
+	Changed bool
 
-	CommentMessageId int
+	Text               string
+	CommentedMessageId int
+
+	Created time.Time
 }

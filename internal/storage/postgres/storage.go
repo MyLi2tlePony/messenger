@@ -233,7 +233,99 @@ func (s *storage) DeleteChat(id int) error {
 	return nil
 }
 
-func (s *storage) CreateTableParticipantsChat(chatId int) error {
+func (s *storage) CreateMessage(chatId int, chat entity.Message) (int, error) {
+	query := `
+		INSERT INTO
+    		messages_chat_` + strconv.Itoa(chatId) + `
+			(user_id, commented_message_id, message, changed, created)
+		VALUES
+			($1, $2, $3, $4, $5)
+		RETURNING
+			id`
+
+	var id int
+	err := s.db.
+		QueryRow(s.ctx, query, chat.UserId, chat.CommentedMessageId, chat.Text, chat.Changed, chat.Created).
+		Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (s *storage) DeleteMessage(chatId int, id int) error {
+	query := `DELETE FROM messages_chat_` + strconv.Itoa(chatId) + ` WHERE id = $1`
+
+	if _, err := s.db.Exec(s.ctx, query, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) CreateParticipant(chatId int, chat entity.Chat) (int, error) {
+	query := `
+		INSERT INTO
+    		participants_chat_` + strconv.Itoa(chatId) + `
+			(user_id, write, post, comment, delete, add_participant)
+		VALUES
+			($1, $2, $3, $4, $5)
+		RETURNING
+			id`
+
+	var id int
+	err := s.db.QueryRow(s.ctx, query, chat.Description, chat.Name, chat.Open).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (s *storage) SelectTopParticipants(chatId int, limit int) ([]entity.Participant, error) {
+	query := `
+		SELECT 
+			id, user_id, write, post, comment, delete, add_participant 
+		FROM 
+			participants_chat_` + strconv.Itoa(chatId) + ` 
+		ORDER BY 
+			id DESC
+		LIMIT $1`
+
+	rows, err := s.db.Query(s.ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	couriers := make([]entity.Participant, 0, limit)
+	for rows.Next() {
+		var c entity.Participant
+
+		if err = rows.Scan(&c.Id, &c.UserId, &c.Write, &c.Post, &c.Comment, &c.Delete, &c.AddParticipant); err != nil {
+			return nil, err
+		}
+
+		couriers = append(couriers, c)
+	}
+
+	return couriers, nil
+}
+
+func (s *storage) DeleteParticipant(chatId int, id int) error {
+	query := `DELETE FROM participants_chat_` + strconv.Itoa(chatId) + ` WHERE id = $1`
+
+	if _, err := s.db.Exec(s.ctx, query, id); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) CreateTableChatParticipants(chatId int) error {
 	query := `
 		CREATE TABLE IF NOT EXISTS participants_chat_` + strconv.Itoa(chatId) + `(
     		id SERIAL PRIMARY KEY UNIQUE NOT NULL,
@@ -243,7 +335,7 @@ func (s *storage) CreateTableParticipantsChat(chatId int) error {
 			post BOOLEAN NOT NULL,
 			comment BOOLEAN NOT NULL,
 			delete BOOLEAN NOT NULL,
-			add BOOLEAN NOT NULL
+			add_participant BOOLEAN NOT NULL
 		)`
 
 	_, err := s.db.Exec(s.ctx, query)
@@ -254,7 +346,7 @@ func (s *storage) CreateTableParticipantsChat(chatId int) error {
 	return nil
 }
 
-func (s *storage) DeleteTableParticipantsChat(chatId int) error {
+func (s *storage) DeleteTableChatParticipants(chatId int) error {
 	query := `DROP TABLE IF EXISTS participants_chat_` + strconv.Itoa(chatId)
 
 	_, err := s.db.Exec(s.ctx, query)
@@ -265,152 +357,95 @@ func (s *storage) DeleteTableParticipantsChat(chatId int) error {
 	return nil
 }
 
-//// CreateCourier создает запись в базе данных и возвращает id новой записи
-//func (s *storage) CreateCourier(ctx context.Context, courier entity.Courier) (id int, err error) {
-//	query := `
-//		INSERT INTO
-//		    Couriers (courier_type, regions, working_hours)
-//		VALUES
-//		    ($1, $2, $3)
-//		RETURNING id`
-//
-//	err = s.db.QueryRow(ctx, query, courier.CourierType, courier.Regions, courier.WorkingHours).Scan(&id)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	return id, nil
-//}
-//
-//// GetCourierById возвращает данные о курьере
-//func (s *storage) GetCourierById(ctx context.Context, id int) (entity.Courier, error) {
-//	query := "SELECT id, courier_type, regions, working_hours FROM couriers WHERE id = $1"
-//	c := entity.Courier{}
-//
-//	if err := s.db.QueryRow(ctx, query, id).Scan(&c.Id, &c.CourierType, &c.Regions, &c.WorkingHours); err != nil {
-//		return entity.Courier{}, err
-//	}
-//
-//	return c, nil
-//}
-//
-//// DeleteCourierById удаляет курьера с указанным id
-//func (s *storage) DeleteCourierById(ctx context.Context, id int) error {
-//	query := "DELETE FROM couriers WHERE id = $1"
-//
-//	if _, err := s.db.Exec(ctx, query, id); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-//
-//// GetCouriers возвращает срез курьеров с указанными offset и limit
-//func (s *storage) GetCouriers(ctx context.Context, offset, limit int) ([]entity.Courier, error) {
-//	query := "SELECT id, courier_type, regions, working_hours FROM couriers OFFSET $1 LIMIT $2"
-//
-//	rows, err := s.db.Query(ctx, query, offset, limit)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	defer rows.Close()
-//
-//	couriers := make([]entity.Courier, 0, limit)
-//	for rows.Next() {
-//		var c entity.Courier
-//
-//		if err = rows.Scan(&c.Id, &c.CourierType, &c.Regions, &c.WorkingHours); err != nil {
-//			return nil, err
-//		}
-//
-//		couriers = append(couriers, c)
-//	}
-//
-//	return couriers, nil
-//}
-//
-//// CreateOrder создает запись в базе данных и возвращает id новой записи
-//func (s *storage) CreateOrder(ctx context.Context, o entity.Order) (id int, err error) {
-//	query := `
-//		INSERT INTO
-//			orders (weight, regions, delivery_hours, cost, completed_time, courier_id)
-//		VALUES
-//			($1, $2, $3, $4, $5, $6)
-//		RETURNING id`
-//
-//	err = s.db.QueryRow(ctx, query, o.Weight, o.Regions, o.DeliveryHours, o.Cost, o.CompletedTime, o.CourierId).Scan(&id)
-//	if err != nil {
-//		return 0, err
-//	}
-//
-//	return id, nil
-//}
-//
-//// GetOrderById возвращает заказ по его id
-//func (s *storage) GetOrderById(ctx context.Context, id int) (entity.Order, error) {
-//	query := "SELECT id, weight, regions, delivery_hours, cost, completed_time, courier_id FROM orders WHERE id = $1"
-//	o := entity.Order{}
-//
-//	if err := s.db.QueryRow(ctx, query, id).Scan(&o.Id, &o.Weight, &o.Regions, &o.DeliveryHours, &o.Cost, &o.CompletedTime, &o.CourierId); err != nil {
-//		return entity.Order{}, err
-//	}
-//
-//	return o, nil
-//}
-//
-//// DeleteOrderById удаляет заказ с указанным id
-//func (s *storage) DeleteOrderById(ctx context.Context, id int) error {
-//	query := "DELETE FROM orders WHERE id = $1"
-//
-//	if _, err := s.db.Exec(ctx, query, id); err != nil {
-//		return err
-//	}
-//
-//	return nil
-//}
-//
-//// GetOrders возвращает срез заказов с указанными offset и limit
-//func (s *storage) GetOrders(ctx context.Context, offset, limit int) ([]entity.Order, error) {
-//	query := "SELECT id, weight, regions, delivery_hours, cost, completed_time, courier_id FROM orders OFFSET $1 LIMIT $2"
-//
-//	rows, err := s.db.Query(ctx, query, offset, limit)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	defer rows.Close()
-//
-//	orders := make([]entity.Order, 0, limit)
-//	for rows.Next() {
-//		var o entity.Order
-//
-//		if err = rows.Scan(&o.Id, &o.Weight, &o.Regions, &o.DeliveryHours, &o.Cost, &o.CompletedTime, &o.CourierId); err != nil {
-//			return nil, err
-//		}
-//
-//		orders = append(orders, o)
-//	}
-//
-//	return orders, nil
-//}
-//
-//// UpdateOrder изменяет запись
-//func (s *storage) UpdateOrder(ctx context.Context, o entity.Order) error {
-//	query := `
-//		UPDATE orders SET
-//		   weight = $2,
-//		   regions = $3,
-//		   delivery_hours = $4,
-//		   cost = $5,
-//		   completed_time = $6,
-//		   courier_id = $7
-//		WHERE id = $1`
-//
-//	_, err := s.db.Exec(ctx, query, &o.Id, &o.Weight, &o.Regions, &o.DeliveryHours, &o.Cost, &o.CompletedTime, &o.CourierId)
-//	if err != nil {
-//		return err
-//	}
-//
-//	return err
-//}
+func (s *storage) CreateTableChatMessages(chatId int) error {
+	query := `
+		CREATE TABLE IF NOT EXISTS messages_chat_` + strconv.Itoa(chatId) + `(
+    		id SERIAL PRIMARY KEY UNIQUE NOT NULL,
+			user_id INTEGER NOT NULL REFERENCES users (Id) ON DELETE CASCADE,
+			
+			commented_message_id INTEGER,
+			message TEXT NOT NULL,
+			changed BOOLEAN NOT NULL,
+
+			created TIMESTAMP NOT NULL
+		)`
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *storage) SelectTopMessages(chatId, limit int) ([]entity.Message, error) {
+	query := `
+		SELECT 
+			id, user_id, commented_message_id, message, changed, created 
+		FROM 
+			messages_chat_` + strconv.Itoa(chatId) + ` 
+		ORDER BY 
+			id DESC
+		LIMIT $1`
+
+	rows, err := s.db.Query(s.ctx, query, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	couriers := make([]entity.Message, 0, limit)
+	for rows.Next() {
+		var c entity.Message
+
+		if err = rows.Scan(&c.Id, &c.UserId, &c.CommentedMessageId, &c.Text, &c.Changed, &c.Created); err != nil {
+			return nil, err
+		}
+
+		couriers = append(couriers, c)
+	}
+
+	return couriers, nil
+}
+
+func (s *storage) SelectMessagesById(chatId, minId, maxId int) ([]entity.Message, error) {
+	query := `
+		SELECT 
+			id, user_id, commented_message_id, message, changed, created 
+		FROM 
+			messages_chat_` + strconv.Itoa(chatId) + `
+		WHERE
+			id >= $1 AND id <= $2`
+
+	rows, err := s.db.Query(s.ctx, query, minId, maxId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	couriers := make([]entity.Message, 0, maxId-minId+1)
+	for rows.Next() {
+		var c entity.Message
+
+		if err = rows.Scan(&c.Id, &c.UserId, &c.CommentedMessageId, &c.Text, &c.Changed, &c.Created); err != nil {
+			return nil, err
+		}
+
+		couriers = append(couriers, c)
+	}
+
+	return couriers, nil
+}
+
+func (s *storage) DeleteTableChatMessages(chatId int) error {
+	query := `DROP TABLE IF EXISTS messages_chat_` + strconv.Itoa(chatId)
+
+	_, err := s.db.Exec(s.ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

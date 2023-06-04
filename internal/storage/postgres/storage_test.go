@@ -6,7 +6,9 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"path"
+	"strconv"
 	"testing"
+	"time"
 
 	databaseConfig "github.com/MyLi2tlePony/messenger/internal/config/database"
 	"github.com/MyLi2tlePony/messenger/internal/storage/entity"
@@ -60,6 +62,40 @@ func TestUser(t *testing.T) {
 		require.True(t, user.Equals(users[i]))
 	}
 
+	chats := []entity.Chat{
+		{Name: "Новый чат 1", Description: "Описание чата 1", Open: true, Created: time.Now()},
+		{Name: "Новый чат 2", Description: "Описание чата 2", Open: false, Created: time.Now()},
+		{Name: "Новый чат 3", Description: "Описание чата 3", Open: true, Created: time.Now()},
+	}
+
+	for i := range chats {
+		chats[i].Id, err = db.CreateChat(chats[i])
+		require.Nil(t, err)
+
+		require.Nil(t, db.CreateTableChatParticipants(chats[i].Id))
+		require.Nil(t, db.CreateTableChatMessages(chats[i].Id))
+
+		messages := make([]entity.Message, 0)
+
+		for j, user := range users {
+			messages = append(messages, entity.Message{
+				UserId:  user.Id,
+				Changed: false,
+				Text:    strconv.Itoa(j),
+				Created: time.Now()})
+
+			messages[i].Id, err = db.CreateMessage(chats[i].Id, messages[j])
+
+		}
+
+	}
+
+	for _, chat := range chats {
+		require.Nil(t, db.DeleteChat(chat.Id))
+		require.Nil(t, db.DeleteTableChatParticipants(chat.Id))
+		require.Nil(t, db.DeleteTableChatMessages(chat.Id))
+	}
+
 	for _, tocken := range tockens {
 		require.Nil(t, db.DeleteTocken(tocken.Id))
 	}
@@ -69,122 +105,3 @@ func TestUser(t *testing.T) {
 		require.Nil(t, db.DeleteTableUserChats(user.Id))
 	}
 }
-
-//func TestCouriers(t *testing.T) {
-//	dbConfig, err := databaseConfig.New(configPath)
-//	require.Nil(t, err)
-//
-//	ctx := context.Background()
-//	db, err := Connect(ctx, dbConfig.GetConnectionString())
-//	require.Nil(t, err)
-//
-//	couriers := []*entity.Courier{
-//		entity.NewCourier("FOOT", []int{1, 2}, []string{"12:15-17:15"}),
-//		entity.NewCourier("FOOT", []int{3, 4}, []string{"13:15-18:15"}),
-//		entity.NewCourier("BIKE", []int{5, 6}, []string{"14:15-19:15"}),
-//		entity.NewCourier("BIKE", []int{7, 8}, []string{"15:15-20:15"}),
-//		entity.NewCourier("AUTO", []int{9, 10}, []string{"16:15-21:15"}),
-//		entity.NewCourier("AUTO", []int{11, 12}, []string{"17:15-22:15"}),
-//	}
-//
-//	for i := range couriers {
-//		id, err := db.CreateCourier(ctx, *couriers[i])
-//		require.Nil(t, err)
-//
-//		couriers[i].Id = id
-//	}
-//
-//	for i := range couriers {
-//		courier, err := db.GetCourierById(ctx, couriers[i].Id)
-//		require.Nil(t, err)
-//
-//		require.True(t, entity.CouriersEquals(courier, *couriers[i]))
-//	}
-//
-//	offset, limit := 0, 2
-//	couriersPart, err := db.GetCouriers(ctx, offset, limit)
-//	require.Nil(t, err)
-//
-//	for i := 0; i+offset < offset+limit; i++ {
-//		require.True(t, entity.CouriersEquals(*couriers[i+offset], couriersPart[i]))
-//	}
-//
-//	offset, limit = 2, 4
-//	couriersPart, err = db.GetCouriers(ctx, offset, limit)
-//	require.Nil(t, err)
-//
-//	for i := 0; i+offset < offset+limit; i++ {
-//		require.True(t, entity.CouriersEquals(*couriers[i+offset], couriersPart[i]))
-//	}
-//
-//	for i := range couriers {
-//		require.Nil(t, db.DeleteCourierById(ctx, couriers[i].Id))
-//	}
-//}
-//
-//func TestOrders(t *testing.T) {
-//	dbConfig, err := databaseConfig.New(configPath)
-//	require.Nil(t, err)
-//
-//	ctx := context.Background()
-//	db, err := Connect(ctx, dbConfig.GetConnectionString())
-//	require.Nil(t, err)
-//
-//	orders := []*entity.Order{
-//		entity.NewOrder(10, 1, []string{"12:15-17:15"}, 100),
-//		entity.NewOrder(20, 2, []string{"12:15-17:15"}, 111),
-//		entity.NewOrder(30, 2, []string{"12:15-17:15"}, 222),
-//		entity.NewOrder(40, 3, []string{"12:15-17:15"}, 333),
-//		entity.NewOrder(11, 4, []string{"12:15-17:15"}, 444),
-//		entity.NewOrder(15, 5, []string{"12:15-17:15"}, 555),
-//	}
-//
-//	for i := range orders {
-//		id, err := db.CreateOrder(ctx, *orders[i])
-//		require.Nil(t, err)
-//
-//		orders[i].Id = id
-//	}
-//
-//	for i := range orders {
-//		courier, err := db.GetOrderById(ctx, orders[i].Id)
-//		require.Nil(t, err)
-//
-//		require.True(t, entity.OrderEquals(courier, *orders[i]))
-//	}
-//
-//	offset, limit := 0, 2
-//	ordersPart, err := db.GetOrders(ctx, offset, limit)
-//	require.Nil(t, err)
-//
-//	for i := 0; i+offset < offset+limit; i++ {
-//		require.True(t, entity.OrderEquals(*orders[i+offset], ordersPart[i]))
-//	}
-//
-//	offset, limit = 2, 4
-//	ordersPart, err = db.GetOrders(ctx, offset, limit)
-//	require.Nil(t, err)
-//
-//	for i := 0; i+offset < offset+limit; i++ {
-//		require.True(t, entity.OrderEquals(*orders[i+offset], ordersPart[i]))
-//	}
-//
-//	for i := range orders {
-//		orders[i].CompletedTime = strconv.Itoa(i + 1)
-//		orders[i].CourierId = i + 1
-//
-//		err = db.UpdateOrder(ctx, *orders[i])
-//		require.Nil(t, err)
-//	}
-//
-//	for i := range orders {
-//		courier, err := db.GetOrderById(ctx, orders[i].Id)
-//		require.Nil(t, err)
-//
-//		require.True(t, entity.OrderEquals(courier, *orders[i]))
-//	}
-//
-//	for i := range orders {
-//		require.Nil(t, db.DeleteOrderById(ctx, orders[i].Id))
-//	}
-//}
