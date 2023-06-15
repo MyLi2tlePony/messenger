@@ -8,7 +8,7 @@ func SetupRoutes(s *Server) {
 	s.echo.GET(urls.UrlUserId, s.SelectUserByPublicId)
 	s.echo.POST(urls.UrlGetUser, s.SelectUserByToken)
 	s.echo.POST(urls.UrlUser, s.CreateUser)
-	s.echo.PATCH(urls.UrlUser, s.UpdateUser)
+	s.echo.POST(urls.UrlUpdateUser, s.UpdateUser)
 	s.echo.POST(urls.UrlToken, s.CreateToken)
 
 	//

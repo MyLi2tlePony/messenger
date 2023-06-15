@@ -3,10 +3,11 @@ package urls
 const (
 	UrlPing = "/ping"
 
-	UrlToken   = "/token"
-	UrlGetUser = "/get/user"
-	UrlUser    = "/user"
-	UrlUserId  = "/user/:id"
+	UrlToken      = "/token"
+	UrlGetUser    = "/get/user"
+	UrlUser       = "/user"
+	UrlUpdateUser = "/user/update"
+	UrlUserId     = "/user/:id"
 
 	UrlCreateChat     = "/chat"
 	UrlSelectChatById = "/chat/:id"
