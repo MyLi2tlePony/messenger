@@ -88,7 +88,7 @@ func (a *app) CreateUser(request dto.CreateUserRequest) error {
 	return nil
 }
 
-func (a *app) CreateToken(request dto.CreateTockenRequest) (dto.Token, error) {
+func (a *app) CreateToken(request dto.CreateTokenRequest) (dto.Token, error) {
 	userId, err := a.storage.SelectUserIdByLoginAndPassword(request.Login, request.Password)
 	if err != nil {
 		return dto.Token{}, err

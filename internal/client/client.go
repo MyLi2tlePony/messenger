@@ -53,13 +53,13 @@ func (c *client) CreateUser(createUserRequest dto.CreateUserRequest) error {
 	return nil
 }
 
-func (c *client) CreateTocken(createTockenRequest dto.CreateTockenRequest) (dto.Token, error) {
-	content, err := json.Marshal(createTockenRequest)
+func (c *client) CreateToken(createTokenRequest dto.CreateTokenRequest) (dto.Token, error) {
+	content, err := json.Marshal(createTokenRequest)
 	if err != nil {
 		return dto.Token{}, err
 	}
 
-	url := c.domain + urls.UrlTocken
+	url := c.domain + urls.UrlToken
 
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(content))
 	if err != nil {
@@ -87,13 +87,13 @@ func (c *client) CreateTocken(createTockenRequest dto.CreateTockenRequest) (dto.
 		return dto.Token{}, err
 	}
 
-	tocken := dto.Token{}
-	err = json.Unmarshal(content, &tocken)
+	token := dto.Token{}
+	err = json.Unmarshal(content, &token)
 	if err != nil {
 		return dto.Token{}, err
 	}
 
-	return tocken, nil
+	return token, nil
 }
 
 func (c *client) SelectUserByPublicId(userId string) (dto.User, error) {
@@ -131,8 +131,8 @@ func (c *client) SelectUserByPublicId(userId string) (dto.User, error) {
 	return user, nil
 }
 
-func (c *client) SelectUserByTocken(dtoTocken dto.Token) (dto.User, error) {
-	content, err := json.Marshal(dtoTocken)
+func (c *client) SelectUserByToken(dtoToken dto.Token) (dto.User, error) {
+	content, err := json.Marshal(dtoToken)
 	if err != nil {
 		return dto.User{}, err
 	}

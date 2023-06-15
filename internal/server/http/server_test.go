@@ -46,7 +46,7 @@ func Test(t *testing.T) {
 
 	userNumber := 6
 	usersRequests := make([]dto.CreateUserRequest, userNumber)
-	tockens := make([]dto.Token, userNumber)
+	tokens := make([]dto.Token, userNumber)
 	users := make([]dto.User, userNumber)
 	for i := 0; i < userNumber; i++ {
 		users[i].Login = "Login" + strconv.Itoa(i)
@@ -66,23 +66,23 @@ func Test(t *testing.T) {
 			Password: usersRequests[i].Password,
 		}))
 
-		tockens[i], err = httpClient.CreateTocken(dto.CreateTockenRequest{
+		tokens[i], err = httpClient.CreateToken(dto.CreateTokenRequest{
 			Login:    usersRequests[i].Login,
 			Password: usersRequests[i].Password,
 		})
 		require.Nil(t, err)
 
-		user, err := httpClient.SelectUserByTocken(tockens[i])
+		user, err := httpClient.SelectUserByToken(tokens[i])
 		require.Nil(t, err)
 
 		err = httpClient.UpdateUser(dto.UpdateUserRequest{
-			Token: tockens[i],
+			Token: tokens[i],
 			User:  users[i],
 		})
 
 		require.Nil(t, err)
 
-		user, err = httpClient.SelectUserByTocken(tockens[i])
+		user, err = httpClient.SelectUserByToken(tokens[i])
 		require.Nil(t, err)
 		require.Equal(t, user, users[i])
 
@@ -90,7 +90,7 @@ func Test(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, user, users[i])
 
-		userId, err := db.SelectUserIdByToken(tockens[i].Text)
+		userId, err := db.SelectUserIdByToken(tokens[i].Text)
 		require.Nil(t, err)
 
 		err = db.DeleteUser(userId)

@@ -11,7 +11,7 @@ import (
 
 type App interface {
 	CreateUser(request dto.CreateUserRequest) error
-	CreateToken(request dto.CreateTockenRequest) (dto.Token, error)
+	CreateToken(request dto.CreateTokenRequest) (dto.Token, error)
 	SelectUserByPublicId(publicId string) (dto.User, error)
 	SelectUserByToken(dtoToken dto.Token) (dto.User, error)
 	UpdateUser(dtoToken dto.Token, dtoUser dto.User) error
@@ -94,7 +94,7 @@ func (s *Server) CreateUser(ctx echo.Context) error {
 }
 
 func (s *Server) CreateToken(ctx echo.Context) error {
-	body := new(dto.CreateTockenRequest)
+	body := new(dto.CreateTokenRequest)
 	if err := ctx.Bind(body); err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)

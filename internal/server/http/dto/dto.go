@@ -60,13 +60,13 @@ type CreateUserRequest struct {
 	Password string `json:"password,omitempty"`
 }
 
-type CreateTockenRequest struct {
+type CreateTokenRequest struct {
 	Login    string `json:"login,omitempty"`
 	Password string `json:"password,omitempty"`
 }
 
 type UpdateUserRequest struct {
-	Token Token `json:"tocken"`
+	Token Token `json:"token"`
 	User  User  `json:"user"`
 }
 

@@ -1,9 +1,7 @@
 package urls
 
 const (
-	UrlPing     = "/ping"
-	urlOrders   = "/orders"
-	urlCouriers = "/couriers"
+	UrlPing = "/ping"
 
 	UrlToken   = "/token"
 	UrlGetUser = "/get/user"
