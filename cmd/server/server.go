@@ -28,18 +28,21 @@ func init() {
 }
 
 func main() {
+	// Получение конфигурации базы данных
 	dbConfig, err := databaseConfig.New(configPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Получение конфигурации миграции
 	migrationConf, err := migrationConfig.New(configPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Получение конфигурации базы данных
 	dbConnectionString := dbConfig.GetConnectionString()
 	postgresDsn := os.Getenv("POSTGRES_DSN")
 	if postgresDsn != "" {
@@ -47,32 +50,38 @@ func main() {
 	}
 	ctx := context.Background()
 
+	// Инициализация структуры, отвечающей за миграции
 	migrator, err := migration.Connect(ctx, dbConnectionString)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Выполнение миграции
 	err = migrator.Migrate(ctx, migrationConf.UpPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Подключение к базе данных
 	db, err := postgres.Connect(ctx, dbConnectionString)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Инициализация уровня приложения
 	apps := application.New(db)
 
+	// Получение конфигурации логера
 	logConfig, err := loggerConfig.New(configPath)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
+	// Инициализация сервера
 	srv := httpsrv.NewServer(logConfig.GetLevel(), apps)
 	srvConfig, err := serverConfig.New(configPath)
 	if err != nil {
@@ -87,6 +96,7 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
+		// Остановка сервера
 		if err := srv.Stop(); err != nil {
 			fmt.Println("failed to stop serv: " + err.Error())
 		}
@@ -94,6 +104,7 @@ func main() {
 
 	fmt.Println("app is running...")
 
+	// Запуск сервера
 	err = srv.Start(srvConfig.GetHostPort())
 	if err != nil {
 		fmt.Println(err)

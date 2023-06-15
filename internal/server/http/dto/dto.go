@@ -1,41 +1,58 @@
 package dto
 
+import "time"
+
 type User struct {
 	PublicId string `json:"public_id,omitempty"`
 
-	Login      string `json:"login,omitempty"`
-	FirstName  string `json:"first_name,omitempty"`
-	SecondName string `json:"second_name,omitempty"`
-	Created    string `json:"created,omitempty"`
+	Login      string    `json:"login,omitempty"`
+	FirstName  string    `json:"first_name,omitempty"`
+	SecondName string    `json:"second_name,omitempty"`
+	Created    time.Time `json:"created,omitempty"`
 }
 
 type Message struct {
 	Id     int `json:"id,omitempty"`
 	UserId int `json:"user_id,omitempty"`
 
-	Type    int    `json:"type,omitempty"`
-	Changed bool   `json:"changed,omitempty"`
-	Read    bool   `json:"read,omitempty"`
-	Text    string `json:"text,omitempty"`
-	Created string `json:"created,omitempty"`
+	Changed bool `json:"changed,omitempty"`
 
-	Messages []Message `json:"messages,omitempty"`
-	Comments []Message `json:"comments,omitempty"`
+	Text               string `json:"text,omitempty"`
+	CommentedMessageId int    `json:"commented_message_id,omitempty"`
+
+	Created time.Time `json:"created"`
 }
 
 type Chat struct {
-	ChatId string
+	Id int `json:"id,omitempty"`
 
-	Type    int
-	Created string
-	Name    string
+	Description string `json:"description,omitempty"`
+	Name        string `json:"name,omitempty"`
 
-	AdminIds []int
-	UserIds  []int
+	Open    bool      `json:"open,omitempty"`
+	Created time.Time `json:"created"`
 }
 
-type Tocken struct {
+type Participant struct {
+	Id     int `json:"id,omitempty"`
+	UserId int `json:"user_id,omitempty"`
+
+	Write   bool `json:"write,omitempty"`
+	Post    bool `json:"post,omitempty"`
+	Comment bool `json:"comment,omitempty"`
+	Delete  bool `json:"delete,omitempty"`
+
+	AddParticipant    bool `json:"add_participant,omitempty"`
+	DeleteParticipant bool `json:"delete_participant,omitempty"`
+}
+
+type Token struct {
 	Text string `json:"text,omitempty"`
+}
+
+type CreateChatRequest struct {
+	Chat         Chat          `json:"chat"`
+	Participants []Participant `json:"participants,omitempty"`
 }
 
 type CreateUserRequest struct {
@@ -49,70 +66,101 @@ type CreateTockenRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Tocken Tocken `json:"tocken"`
-	User   User   `json:"user"`
+	Token Token `json:"tocken"`
+	User  User  `json:"user"`
 }
 
-type SendMessageRequest struct {
-	Tocken  Tocken
-	ChatId  int
-	Message Message
+type CreateMessageRequest struct {
+	Token   Token   `json:"token"`
+	ChatId  int     `json:"chat_id,omitempty"`
+	Message Message `json:"message"`
 }
 
 type ChangeMessageRequest struct {
-	Tocken  Tocken
-	ChatId  int
-	Message Message
+	Token   Token   `json:"token"`
+	ChatId  int     `json:"chat_id,omitempty"`
+	Message Message `json:"message"`
 }
 
 type GetMessageRequest struct {
-	Tocken    Tocken
-	ChatId    int
-	MessageId int
+	Token     Token `json:"token"`
+	ChatId    int   `json:"chat_id,omitempty"`
+	MessageId int   `json:"message_id,omitempty"`
 }
 
 type GetPrevMessagesRequest struct {
-	Tocken Tocken
-	ChatId int
-	Offset int
-	Count  int
+	Token  Token `json:"token"`
+	ChatId int   `json:"chat_id,omitempty"`
+	Offset int   `json:"offset,omitempty"`
+	Count  int   `json:"count,omitempty"`
 }
 
 type UpdateMessageRequest struct {
-	Tocken  Tocken
-	ChatId  int
-	Message Message
+	Token   Token   `json:"token"`
+	ChatId  int     `json:"chat_id,omitempty"`
+	Message Message `json:"message"`
 }
 
 type SharedMessageRequest struct {
-	Tocken    Tocken
-	SrcChatId int
-	DstChatId int
-	Messages  []Message
+	Token     Token     `json:"token"`
+	SrcChatId int       `json:"src_chat_id,omitempty"`
+	DstChatId int       `json:"dst_chat_id,omitempty"`
+	Messages  []Message `json:"messages,omitempty"`
 }
 
 type CreateCommentRequest struct {
-	Tocken    Tocken
-	MessageId int
-	Message   Message
-}
-
-type CreateChatRequest struct {
-	Tocken Tocken
-	Name   string
-	Type   int
-
-	UserIds  []int
-	AdminIds []int
+	Token     Token   `json:"token"`
+	MessageId int     `json:"message_id,omitempty"`
+	Message   Message `json:"message"`
 }
 
 type GetPrevChatsRequest struct {
-	Tocken Tocken
-	Offset int
-	Count  int
+	Token  Token `json:"token"`
+	Offset int   `json:"offset,omitempty"`
+	Count  int   `json:"count,omitempty"`
 }
 
 type UpdateChatRequest struct {
-	Tocken Tocken
-	Chat   Chat
+	Token Token `json:"token"`
+	Chat  Chat  `json:"chat"`
+}
+
+type SelectTopMessagesRequest struct {
+	Token  Token `json:"token"`
+	ChatId int   `json:"chat_id,omitempty"`
+	Limit  int   `json:"limit,omitempty"`
+}
+
+type SelectMessagesByIdRequest struct {
+	ChatId int   `json:"chat_id,omitempty"`
+	MinId  int   `json:"min_id,omitempty"`
+	MaxId  int   `json:"max_id,omitempty"`
+	Token  Token `json:"token"`
+}
+
+type DeleteMessageRequest struct {
+	ChatId    int   `json:"chat_id,omitempty"`
+	MessageId int   `json:"message_id,omitempty"`
+	Token     Token `json:"token"`
+}
+
+type GetUserChatsRequest struct {
+	Token Token `json:"token"`
+}
+
+type DeleteUserChatRequest struct {
+	Token  Token `json:"token"`
+	ChatId int   `json:"chat_id,omitempty"`
+}
+
+type CreateParticipantRequest struct {
+	Token       Token       `json:"token"`
+	ChatId      int         `json:"chat_id,omitempty"`
+	Participant Participant `json:"participant"`
+}
+
+type DeleteParticipantRequest struct {
+	Token         Token `json:"token"`
+	ChatId        int   `json:"chat_id,omitempty"`
+	ParticipantId int   `json:"participant_id,omitempty"`
 }

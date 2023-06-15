@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS tockens;
+DROP TABLE IF EXISTS tokens;
 
 DROP TABLE IF EXISTS users;
 

@@ -1,5 +1,7 @@
 package entity
 
+import "time"
+
 type User struct {
 	Id int
 
@@ -11,14 +13,16 @@ type User struct {
 	FirstName  string
 	SecondName string
 
-	Created string
+	Created time.Time
 }
 
-func (u *User) Equals(user User) bool {
-	return u.Id == user.Id &&
-		u.PublicId == user.PublicId &&
-		u.Login == user.Login &&
-		u.Password == user.Password &&
-		u.FirstName == user.FirstName &&
-		u.SecondName == user.SecondName
+func NewUser(publicId, login, password, firstName, secondName string, created time.Time) User {
+	return User{
+		PublicId:   publicId,
+		Login:      login,
+		Password:   password,
+		FirstName:  firstName,
+		SecondName: secondName,
+		Created:    created,
+	}
 }

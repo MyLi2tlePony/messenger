@@ -11,23 +11,26 @@ import (
 
 type App interface {
 	CreateUser(request dto.CreateUserRequest) error
+	CreateToken(request dto.CreateTockenRequest) (dto.Token, error)
 	SelectUserByPublicId(publicId string) (dto.User, error)
-	SelectUserByTocken(dtoTocken dto.Tocken) (dto.User, error)
-	UpdateUser(tocken dto.Tocken, user dto.User) error
+	SelectUserByToken(dtoToken dto.Token) (dto.User, error)
+	UpdateUser(dtoToken dto.Token, dtoUser dto.User) error
 
-	CreateTocken(request dto.CreateTockenRequest) (dto.Tocken, error)
+	//
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
 
-	CreateMessage(chatPublicId int, tocken dto.Tocken, message dto.Message) error
-	GetMessage(tocken dto.Tocken, messageId, chatId int) (dto.Message, error)
-	GetPrevMessages(tocken dto.Tocken, chatId, offset, count int) ([]dto.Message, error)
-	UpdateMessage(tocken dto.Tocken, chatId int, message dto.Message) error
-	SharedMessage(tocken dto.Tocken, srcChatId, dstChatId int, messages []dto.Message) error
-	CreateComment(tocken dto.Tocken, messageId int, message dto.Message) error
-
-	CreateChat(tocken dto.Tocken, chatName string, chatType int, adminsIds, userIds []int) error
+	CreateChat(createChatRequest dto.CreateChatRequest) error
 	SelectChatById(id int) (dto.Chat, error)
-	GetPrevChats(tocken dto.Tocken, offset, count int) ([]dto.Chat, error)
-	UpdateChat(tocken dto.Tocken, chat dto.Chat) error
+	CreateMessage(chatId int, dtoToken dto.Token, dtoMessage dto.Message) error
+	SelectTopMessages(dtoToken dto.Token, chatId, limit int) ([]dto.Message, error)
+	SelectMessagesById(chatId, minId, maxId int, dtoToken dto.Token) ([]dto.Message, error)
+	DeleteMessage(chatId, messageId int, dtoToken dto.Token) error
+	GetUserChats(dtoToken dto.Token) ([]dto.Chat, error)
+	DeleteUserChat(dtoToken dto.Token, chatId int) error
+	CreateParticipant(dtoToken dto.Token, chatId int, dtoParticipant dto.Participant) error
+	SelectParticipant(chatId int) ([]dto.Participant, error)
+	DeleteParticipant(dtoToken dto.Token, chatId, participantId int) error
 }
 
 var (
@@ -90,30 +93,30 @@ func (s *Server) CreateUser(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusOK)
 }
 
-func (s *Server) CreateTocken(ctx echo.Context) error {
+func (s *Server) CreateToken(ctx echo.Context) error {
 	body := new(dto.CreateTockenRequest)
 	if err := ctx.Bind(body); err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	tocken, err := s.app.CreateTocken(*body)
+	token, err := s.app.CreateToken(*body)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	return ctx.JSON(http.StatusOK, tocken)
+	return ctx.JSON(http.StatusOK, token)
 }
 
-func (s *Server) SelectUserByTocken(ctx echo.Context) error {
-	body := new(dto.Tocken)
+func (s *Server) SelectUserByToken(ctx echo.Context) error {
+	body := new(dto.Token)
 	if err := ctx.Bind(body); err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	user, err := s.app.SelectUserByTocken(*body)
+	user, err := s.app.SelectUserByToken(*body)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
@@ -141,7 +144,7 @@ func (s *Server) UpdateUser(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	err := s.app.UpdateUser(body.Tocken, body.User)
+	err := s.app.UpdateUser(body.Token, body.User)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
@@ -150,101 +153,9 @@ func (s *Server) UpdateUser(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusOK)
 }
 
-func (s *Server) CreateMessage(ctx echo.Context) error {
-	body := new(dto.SendMessageRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	err := s.app.CreateMessage(body.ChatId, body.Tocken, body.Message)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.NoContent(http.StatusOK)
-}
-
-func (s *Server) GetMessage(ctx echo.Context) error {
-	body := new(dto.GetMessageRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	message, err := s.app.GetMessage(body.Tocken, body.MessageId, body.ChatId)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.JSON(http.StatusOK, message)
-}
-
-func (s *Server) GetPrevMessages(ctx echo.Context) error {
-	body := new(dto.GetPrevMessagesRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	messages, err := s.app.GetPrevMessages(body.Tocken, body.ChatId, body.Offset, body.Count)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.JSON(http.StatusOK, messages)
-}
-
-func (s *Server) UpdateMessage(ctx echo.Context) error {
-	body := new(dto.UpdateMessageRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	err := s.app.UpdateMessage(body.Tocken, body.ChatId, body.Message)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.NoContent(http.StatusOK)
-}
-
-func (s *Server) SharedMessage(ctx echo.Context) error {
-	body := new(dto.SharedMessageRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	err := s.app.SharedMessage(body.Tocken, body.SrcChatId, body.DstChatId, body.Messages)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.NoContent(http.StatusOK)
-}
-
-func (s *Server) CreateComment(ctx echo.Context) error {
-	body := new(dto.CreateCommentRequest)
-	if err := ctx.Bind(body); err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	err := s.app.CreateComment(body.Tocken, body.MessageId, body.Message)
-	if err != nil {
-		ctx.Logger().Error(err)
-		return ctx.NoContent(http.StatusBadRequest)
-	}
-
-	return ctx.NoContent(http.StatusOK)
-}
+//
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 func (s *Server) CreateChat(ctx echo.Context) error {
 	body := new(dto.CreateChatRequest)
@@ -253,7 +164,7 @@ func (s *Server) CreateChat(ctx echo.Context) error {
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	err := s.app.CreateChat(body.Tocken, body.Name, body.Type, body.AdminIds, body.UserIds)
+	err := s.app.CreateChat(dto.CreateChatRequest{})
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
@@ -262,7 +173,7 @@ func (s *Server) CreateChat(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusOK)
 }
 
-func (s *Server) GetChat(ctx echo.Context) error {
+func (s *Server) SelectChatById(ctx echo.Context) error {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.Logger().Error(err)
@@ -278,30 +189,142 @@ func (s *Server) GetChat(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, user)
 }
 
-func (s *Server) GetPrevChats(ctx echo.Context) error {
-	body := new(dto.GetPrevChatsRequest)
+func (s *Server) CreateMessage(ctx echo.Context) error {
+	body := new(dto.CreateMessageRequest)
 	if err := ctx.Bind(body); err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	chats, err := s.app.GetPrevChats(body.Tocken, body.Offset, body.Count)
+	err := s.app.CreateMessage(body.ChatId, body.Token, body.Message)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	return ctx.JSON(http.StatusOK, chats)
+	return ctx.NoContent(http.StatusOK)
 }
 
-func (s *Server) UpdateChat(ctx echo.Context) error {
-	body := new(dto.UpdateChatRequest)
+func (s *Server) SelectTopMessages(ctx echo.Context) error {
+	body := new(dto.SelectTopMessagesRequest)
 	if err := ctx.Bind(body); err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)
 	}
 
-	err := s.app.UpdateChat(body.Tocken, body.Chat)
+	messages, err := s.app.SelectTopMessages(body.Token, body.ChatId, body.Limit)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.JSON(http.StatusOK, messages)
+}
+
+func (s *Server) SelectMessagesById(ctx echo.Context) error {
+	body := new(dto.SelectMessagesByIdRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	messages, err := s.app.SelectMessagesById(body.ChatId, body.MinId, body.MaxId, body.Token)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.JSON(http.StatusOK, messages)
+}
+
+func (s *Server) DeleteMessage(ctx echo.Context) error {
+	body := new(dto.DeleteMessageRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err := s.app.DeleteMessage(body.ChatId, body.MessageId, body.Token)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (s *Server) GetUserChats(ctx echo.Context) error {
+	body := new(dto.GetUserChatsRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	result, err := s.app.GetUserChats(body.Token)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.JSON(http.StatusOK, result)
+}
+
+func (s *Server) DeleteUserChat(ctx echo.Context) error {
+	body := new(dto.DeleteUserChatRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err := s.app.DeleteUserChat(body.Token, body.ChatId)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (s *Server) CreateParticipant(ctx echo.Context) error {
+	body := new(dto.CreateParticipantRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err := s.app.CreateParticipant(body.Token, body.ChatId, body.Participant)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (s *Server) SelectParticipant(ctx echo.Context) error {
+	id, err := strconv.Atoi(ctx.Param("chat_id"))
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	results, err := s.app.SelectParticipant(id)
+	if err != nil {
+		ctx.Logger().Error(err)
+		return ctx.JSON(http.StatusBadRequest, results)
+	}
+
+	return ctx.JSON(http.StatusOK, results)
+}
+
+func (s *Server) DeleteParticipant(ctx echo.Context) error {
+	body := new(dto.DeleteParticipantRequest)
+	if err := ctx.Bind(body); err != nil {
+		ctx.Logger().Error(err)
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err := s.app.DeleteParticipant(body.Token, body.ChatId, body.ParticipantId)
 	if err != nil {
 		ctx.Logger().Error(err)
 		return ctx.NoContent(http.StatusBadRequest)

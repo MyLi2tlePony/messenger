@@ -5,17 +5,23 @@ const (
 	urlOrders   = "/orders"
 	urlCouriers = "/couriers"
 
-	UrlTocken  = "/tocken"
+	UrlToken   = "/token"
 	UrlGetUser = "/get/user"
 	UrlUser    = "/user"
 	UrlUserId  = "/user/:id"
 
-	urlChat   = "/chat"
-	urlChatId = "/chat/:id"
+	UrlCreateChat     = "/chat"
+	UrlSelectChatById = "/chat/:id"
 
-	urlMessage   = "/message"
-	urlMessageId = "/message/:id"
+	UrlCreateMessage       = "/message"
+	UrlSelectTopMessages   = "/messages/top"
+	UrlSelectMessagesByIds = "/messages/ids"
+	UrlDeleteMessage       = "/messages/delete"
 
-	urlComment   = "/comment"
-	urlCommentId = "/comment/:id"
+	UrlGetUserChats   = "/user/chat"
+	UrlDeleteUserChat = "/user/chat/delete"
+
+	UrlCreateParticipant = "/participant"
+	UrlSelectParticipant = "/participant/:chat_id"
+	UrlDeleteParticipant = "/participant/delete"
 )

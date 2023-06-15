@@ -53,44 +53,44 @@ func (c *client) CreateUser(createUserRequest dto.CreateUserRequest) error {
 	return nil
 }
 
-func (c *client) CreateTocken(createTockenRequest dto.CreateTockenRequest) (dto.Tocken, error) {
+func (c *client) CreateTocken(createTockenRequest dto.CreateTockenRequest) (dto.Token, error) {
 	content, err := json.Marshal(createTockenRequest)
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
 	url := c.domain + urls.UrlTocken
 
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(content))
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
 	request.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(request)
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return dto.Tocken{}, ErrBadRequest
+		return dto.Token{}, ErrBadRequest
 	}
 
 	content, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
 	err = resp.Body.Close()
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
-	tocken := dto.Tocken{}
+	tocken := dto.Token{}
 	err = json.Unmarshal(content, &tocken)
 	if err != nil {
-		return dto.Tocken{}, err
+		return dto.Token{}, err
 	}
 
 	return tocken, nil
@@ -131,7 +131,7 @@ func (c *client) SelectUserByPublicId(userId string) (dto.User, error) {
 	return user, nil
 }
 
-func (c *client) SelectUserByTocken(dtoTocken dto.Tocken) (dto.User, error) {
+func (c *client) SelectUserByTocken(dtoTocken dto.Token) (dto.User, error) {
 	content, err := json.Marshal(dtoTocken)
 	if err != nil {
 		return dto.User{}, err
@@ -198,6 +198,10 @@ func (c *client) UpdateUser(updateUserRequest dto.UpdateUserRequest) error {
 
 	return nil
 }
+
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 
 //func (c *client) CreateMessage(ctx echo.Context) error {
 //}

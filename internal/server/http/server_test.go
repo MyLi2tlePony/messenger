@@ -46,7 +46,7 @@ func Test(t *testing.T) {
 
 	userNumber := 6
 	usersRequests := make([]dto.CreateUserRequest, userNumber)
-	tockens := make([]dto.Tocken, userNumber)
+	tockens := make([]dto.Token, userNumber)
 	users := make([]dto.User, userNumber)
 	for i := 0; i < userNumber; i++ {
 		users[i].Login = "Login" + strconv.Itoa(i)
@@ -76,8 +76,8 @@ func Test(t *testing.T) {
 		require.Nil(t, err)
 
 		err = httpClient.UpdateUser(dto.UpdateUserRequest{
-			Tocken: tockens[i],
-			User:   users[i],
+			Token: tockens[i],
+			User:  users[i],
 		})
 
 		require.Nil(t, err)
@@ -90,7 +90,7 @@ func Test(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, user, users[i])
 
-		userId, err := db.SelectUserIdByTocken(tockens[i].Text)
+		userId, err := db.SelectUserIdByToken(tockens[i].Text)
 		require.Nil(t, err)
 
 		err = db.DeleteUser(userId)

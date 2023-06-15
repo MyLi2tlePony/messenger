@@ -9,5 +9,6 @@ type Participant struct {
 	Comment bool
 	Delete  bool
 
-	AddParticipant bool
+	AddParticipant    bool
+	DeleteParticipant bool
 }

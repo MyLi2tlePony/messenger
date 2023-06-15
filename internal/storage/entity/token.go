@@ -1,6 +1,6 @@
 package entity
 
-type Tocken struct {
+type Token struct {
 	Id     int
 	UserId int
 	Text   string
